@@ -1,99 +1,151 @@
 # Hotel Room Management System
+
 ## Technical Requirements Document
 
-Backend: Python + Flask
-Frontend: HTML + CSS
-Storage: Manual 
-Architecture: Modular Layered Architecture
+## 1. Purpose
 
-# Purpose
-This document defines the technical structure of the Hotel Room Management System.
+This document defines the technical structure of the **Hotel Room Management System MVP**.
 
-It is the primary technical reference for the development team and defines:
+The system is a lightweight Flask-based backend application that provides API endpoints for:
 
-* Project structure
-* Modules
-* Classes
-* Functions
-* Data structures
-* Routes
-* Role permissions
-* Room states
-* Module dependencies
-* Core workflows
+* Hotel room management
+* Room type and pricing management
+* Customer check-in
+* Customer check-out
+* Room cleaning management
+* Runtime role-based access
+* Role-specific dashboard information
 
-The system is intentionally lightweight and does not introduce unnecessary frameworks or external services.
+The application intentionally avoids persistent databases, frontend components, authentication frameworks, and unnecessary architectural layers.
 
+All application data exists only while the application is running.
 
-# Technology Stack
-| Layer          | Technology                  |
-| -------------- | --------------------------- |
-| Backend        | Python                      |
-| Web Framework  | Flask                       |
-| Frontend       | HTML                        |
-| Styling        | CSS                         |
-| Storage        | Python dictionaries / lists |
-| Authentication | Flask Session               |
+---
 
-# Architecture
+# 2. Technology Stack
 
-HTML / CSS Frontend
-        │
-        ▼
-   Flask Routes
-        │
-        ▼
-   Service Layer
-        │
-        ▼
-    Data Store
-        │
-        ▼
-     Models
+| Layer          | Technology                    |
+| -------------- | ----------------------------- |
+| Backend        | Python                        |
+| Web Framework  | Flask                         |
+| API            | Flask HTTP/JSON APIs          |
+| Storage        | Python dictionaries and lists |
+| Authentication | Runtime role verification     |
+| Persistence    | None                          |
+| Frontend       | None                          |
 
-### Route Layer
+The application is an **API-only backend**.
 
-Handles:
+---
 
-* HTTP requests
-* Authentication checks
-* Role authorization
-* Request data
-* Responses
+# 3. Architecture
 
-### Service Layer
+The system follows a lightweight layered architecture:
 
-Handles:
+```text
+HTTP/API Request
+       │
+       ▼
+    Routes
+       │
+       ▼
+   Services
+       │
+       ▼
+ Runtime Data Store
+```
 
-* Business logic
-* Validation
-* Room state changes
-* Check-in
-* Check-out
+The application does not use:
+
+* HTML
+* CSS
+* JavaScript frontend
+* Flask Sessions
+* JWT
+* Cookies
+* External database
+* ORM
+* Explicit Data Model layer
+
+`Hotel` and `Room` are ordinary Python classes used by the application where required. They are not part of a separate model architecture.
+
+---
+
+## 3.1 Route Layer
+
+The Route Layer is responsible for:
+
+* Receiving HTTP requests
+* Reading request data
+* Performing runtime role verification
+* Calling the appropriate service
+* Returning API responses
+* Returning HTTP status codes
+
+Routes must not contain business logic.
+
+---
+
+## 3.2 Service Layer
+
+The Service Layer contains the application's business logic.
+
+Responsibilities include:
+
+* Room management
+* Room type management
+* Pricing
+* Customer check-in
+* Customer check-out
 * Cleaning operations
+* Runtime validation
+* Dashboard calculations
+* Room state transitions
+* Credential generation
 
-### Data Store
+Services communicate with the runtime data store.
 
-Handles:
+---
 
-* Runtime data
-* Create
-* Read
-* Update
-* Search
-* Deactivate
+## 3.3 Runtime Data Store
 
-### Models
+The Runtime Data Store manages all application data using Python dictionaries and lists.
 
-Define the structure of:
+Responsibilities:
 
-* Users
-* Rooms
-* Room types
-* Customers
+* Store runtime data
+* Create records
+* Read records
+* Update records
+* Search records
+* Deactivate records
+* Maintain relationships between runtime records
 
-# Project Structure
+No data is persisted to disk or an external database.
 
+### Data Lifecycle
+
+```text
+Application Start
+       ↓
+Initialize Runtime Data
+       ↓
+Load Initial Development Data
+       ↓
+Application Running
+       ↓
+Application Stop
+       ↓
+All Runtime Data Lost
+```
+
+---
+
+# 4. MVP Project Structure
+
+The project structure is intentionally minimized.
+
+```text
 hotel_room_management/
 │
 ├── run.py
@@ -102,157 +154,274 @@ hotel_room_management/
 ├── README.md
 ├── TRD.md
 │
-├── app/
-│   ├── __init__.py
-│   │
-│   ├── routes/
-│   │   ├── auth_routes.py
-│   │   ├── owner_routes.py
-│   │   ├── reception_routes.py
-│   │   └── cleaner_routes.py
-│   │
-│   ├── services/
-│   │   ├── auth_service.py
-│   │   ├── room_service.py
-│   │   ├── room_type_service.py
-│   │   ├── checkin_service.py
-│   │   ├── checkout_service.py
-│   │   ├── cleaning_service.py
-│   │   └── dashboard_service.py
-│   │
-│   ├── models/
-│   │   ├── user.py
-│   │   ├── room.py
-│   │   ├── room_type.py
-│   │   └── customer.py
-│   │
-│   ├── data/
-│   │   ├── data_store.py
-│   │   └── initial_data.py
-│   │
-│   ├── utils/
-│   │   ├── constants.py
-│   │   ├── validators.py
-│   │   ├── generators.py
-│   │   └── decorators.py
-│   │
-│   └── frontend/
-│       ├── login.html
-│       │
-│       ├── owner/
-│       │   ├── dashboard.html
-│       │   ├── rooms.html
-│       │   └── room_types.html
-│       │
-│       ├── reception/
-│       │   ├── dashboard.html
-│       │   ├── checkin.html
-│       │   └── checkout.html
-│       │
-│       └── cleaner/
-│           ├── dashboard.html
-│           └── cleaning.html
-│
-└── tests/
-    ├── test_auth.py
-    ├── test_rooms.py
-    ├── test_checkin.py
-    ├── test_checkout.py
-    └── test_cleaning.py
+└── app/
+    ├── __init__.py
+    │
+    ├── routes/
+    │   ├── owner_routes.py
+    │   ├── reception_routes.py
+    │   └── cleaner_routes.py
+    │
+    ├── services/
+    │   ├── room_service.py
+    │   ├── room_type_service.py
+    │   ├── checkin_service.py
+    │   ├── checkout_service.py
+    │   ├── cleaning_service.py
+    │   └── dashboard_service.py
+    │
+    ├── data/
+    │   ├── data_store.py
+    │   └── initial_data.py
+    │
+    └── utils/
+        ├── constants.py
+        ├── validators.py
+        └── generators.py
+```
 
+There is intentionally no:
 
-# Application Modules
+```text
+models/
+frontend/
+templates/
+static/
+auth_service.py
+decorators.py
+```
 
-Authentication
-Room Management
-Room Type & Pricing
-Customer Check-in
-Customer Check-out
-Cleaning Management
-Dashboard
+for the MVP.
 
-# User Roles
-## Owner
+---
 
-access to:
+# 5. Application Modules
+
+The MVP contains the following modules:
+
+1. Room Management
+2. Room Type & Pricing
+3. Customer Check-in
+4. Customer Check-out
+5. Cleaning Management
+6. Dashboard
+
+Authentication is implemented as **runtime role verification** at the API boundary rather than as a standalone authentication module.
+
+---
+
+# 6. User Roles
+
+The system supports three roles:
+
+```text
+OWNER
+RECEPTION
+CLEANER
+```
+
+---
+
+## 6.1 Owner
+
+The Owner can access:
+
 * Room management
 * Room types
 * Room pricing
 * Room availability
-* Maintenance
+* Maintenance management
 * Occupant information
+* Owner dashboard
 
-## Reception
+The Owner can:
 
-access to:
+* Create rooms
+* Update rooms
+* Deactivate rooms
+* Create room types
+* Update room types
+* Deactivate room types
+* Update room pricing
+* Change rooms to/from maintenance where allowed
+* View current occupants
+
+---
+
+## 6.2 Reception
+
+Reception can access:
+
 * Available rooms
-* Room types and prices
+* Occupied rooms
+* Room types
+* Room prices
 * Customer check-in
 * Room assignment
 * Key-card generation
 * Customer password generation
 * Customer check-out
-* Occupied rooms
+* Reception dashboard
 
-## Cleaner
+Reception cannot:
 
-access to:
+* Create rooms
+* Modify room configuration
+* Modify room types
+* Modify pricing
+* Manage maintenance configuration
+
+---
+
+## 6.3 Cleaner
+
+Cleaner can access:
+
 * Cleaning queue
 * Cleaning status
 * Room information required for cleaning
-* Mark room as ready
+* Cleaner dashboard
+* Mark rooms as ready
 
 Cleaner cannot modify:
+
 * Customer information
 * Pricing
 * Room types
-* Staff accounts
 * Room configuration
+* Staff information
 
-# Data Store
-File: app/data/data_store.py
-The system uses a manual NoSQL-style runtime data store.
+---
 
-Collections:
+# 7. Runtime Role Verification
+
+The MVP does not use:
+
+* Flask Session
+* JWT
+* Cookies
+* Login persistence
+* Token management
+
+Instead, every protected API request provides the user's runtime role.
+
+Example:
+
+```text
+Role: OWNER
+```
+
+or through a request header:
+
+```text
+X-Role: OWNER
+```
+
+The exact API mechanism can be standardized during implementation, but the role must be verified for every protected operation.
+
+Example:
+
+```text
+HTTP Request
+     ↓
+Read Runtime Role
+     ↓
+Check Required Role
+     ↓
+Allowed → Service
+Denied → 403 Forbidden
+```
+
+This mechanism is intended only for the MVP/runtime environment and does not represent production-grade authentication.
+
+---
+
+# 8. Runtime Data Store
+
+File:
+
+```text
+app/data/data_store.py
+```
+
+The system uses an in-memory NoSQL-style runtime store.
+
+The primary collections are:
+
+```text
 users
 rooms
 room_types
 customers
+```
 
-The data exists only while the application is running.
+Example conceptual structure:
 
-Application Start
-       ↓
-Data Loaded
-       ↓
-Application Running
-       ↓
-Application Stop
-       ↓
-Data Lost
+```python
+data_store = {
+    "users": [],
+    "rooms": [],
+    "room_types": [],
+    "customers": []
+}
+```
 
-File: app/data/initial_data.py
+The data store is initialized when the application starts.
 
-Responsible for loading initial development data.
+---
 
-# Models
-## User
+# 9. Initial Data
 
-File: app/models/user.py
-Class: User
+File:
+
+```text
+app/data/initial_data.py
+```
+
+This module provides development/runtime seed data.
+
+It is responsible for:
+
+* Creating initial users
+* Creating initial room types
+* Creating initial rooms
+* Optionally creating sample customer records
+
+Initial data exists only in memory.
+
+---
+
+# 10. Application Classes
+
+The MVP does not use a dedicated Models layer.
+
+Instead, required domain classes are defined directly in the appropriate application modules.
+
+---
+
+## 10.1 Hotel
+
+The `Hotel` class represents the hotel/application runtime context.
+
+Possible responsibilities include:
+
+* Hotel identity
+* Room collection
+* Room type collection
+* Customer collection
+* Runtime hotel information
+
+The class should remain lightweight and must not introduce database persistence.
+
+---
+
+## 10.2 Room
+
+The `Room` class represents a hotel room.
+
 Fields:
-id
-username
-password
-name
-role
-active
 
-## Room
-File: app/models/room.py
-Class:Room
-
-Fields:
+```text
 id
 room_number
 room_type_id
@@ -260,23 +429,87 @@ price
 status
 floor
 active
+```
 
-## Room Type
-File: app/models/room_type.py
-Class: RoomType
+Example:
+
+```text
+Room
+├── id
+├── room_number
+├── room_type_id
+├── price
+├── status
+├── floor
+└── active
+```
+
+---
+
+# 11. Runtime User Structure
+
+Users are represented using runtime dictionaries or lightweight objects.
 
 Fields:
+
+```text
+id
+username
+password
+name
+role
+active
+```
+
+Example:
+
+```python
+{
+    "id": 1,
+    "username": "owner",
+    "password": "1234",
+    "name": "Hotel Owner",
+    "role": "OWNER",
+    "active": True
+}
+```
+
+---
+
+# 12. Room Type Structure
+
+Room types are stored in the runtime data store.
+
+Fields:
+
+```text
 id
 name
 description
 price
 active
+```
 
-## Customer
-File: app/models/customer.py
-Class: Customer
+Example room types:
+
+```text
+Single
+Double
+Deluxe
+Suite
+```
+
+Room type pricing is managed by the Owner.
+
+---
+
+# 13. Customer Structure
+
+Customer records are stored in the runtime data store.
 
 Fields:
+
+```text
 id
 name
 phone
@@ -287,16 +520,28 @@ actual_checkout
 key_card_number
 password
 active
+```
 
-# Room Status
+The customer record represents the current and historical runtime stay information.
+
+---
+
+# 14. Room Status
+
 The system supports four room states:
+
+```text
 AVAILABLE
 OCCUPIED
 CLEANING
 MAINTENANCE
+```
 
-State flow:
+---
 
+## 14.1 Normal State Flow
+
+```text
 AVAILABLE
     │
     │ Check-in
@@ -310,53 +555,139 @@ CLEANING
     │ Cleaning complete
     ▼
 AVAILABLE
+```
 
-Maintenance:
+---
 
+## 14.2 Maintenance Flow
+
+```text
 AVAILABLE
     ↕
 MAINTENANCE
+```
 
-Only `AVAILABLE` rooms can be assigned to customers.
+Maintenance operations must not affect an occupied room.
 
-# Authentication
-File: app/services/auth_service.py
-Class: AuthService
+Only an `AVAILABLE` room can be assigned to a new customer.
+
+---
+
+# 15. Constants
+
+File:
+
+```text
+app/utils/constants.py
+```
+
+Centralized constants must be used throughout the application.
+
+### Roles
+
+```text
+OWNER
+RECEPTION
+CLEANER
+```
+
+### Room States
+
+```text
+AVAILABLE
+OCCUPIED
+CLEANING
+MAINTENANCE
+```
+
+This prevents repeated hard-coded strings throughout services and routes.
+
+---
+
+# 16. Validators
+
+File:
+
+```text
+app/utils/validators.py
+```
+
+The validation module contains reusable backend validation functions.
 
 Functions:
-login()
-logout()
-validate_user()
-get_current_user()
 
-Authentication uses Flask sessions.
+```text
+validate_customer_name()
+validate_phone()
+validate_room_number()
+validate_price()
+validate_room_type()
+validate_checkout_date()
+validate_room_status()
+```
 
-Session information:
-user_id
-role
+All important validation must occur on the backend.
 
-Routes:
-GET  /login
-POST /login
-POST /logout
+Routes should not depend on client-side validation.
 
-# Authorization
-File: app/utils/decorators.py
-Responsible for:
-* Checking whether a user is logged in
-* Checking the user's role
-* Blocking unauthorized operations
+---
 
-Role routing:
-OWNER      → Owner routes
-RECEPTION  → Reception routes
-CLEANER    → Cleaner routes
+# 17. Generators
 
-# Room Service
-File: app/services/room_service.py
-Class: RoomService
+File:
+
+```text
+app/utils/generators.py
+```
 
 Functions:
+
+```text
+generate_four_digit_password()
+generate_key_card_number()
+```
+
+---
+
+## 17.1 Customer Password
+
+A four-digit password is generated during customer check-in.
+
+Example:
+
+```text
+4837
+```
+
+The password must be generated by the backend.
+
+---
+
+## 17.2 Key Card
+
+A key-card number is generated during check-in.
+
+The key-card number must be unique among active customer assignments.
+
+---
+
+# 18. Room Service
+
+File:
+
+```text
+app/services/room_service.py
+```
+
+Class:
+
+```text
+RoomService
+```
+
+Functions:
+
+```text
 create_room()
 update_room()
 deactivate_room()
@@ -367,99 +698,196 @@ get_occupied_rooms()
 get_cleaning_rooms()
 get_maintenance_rooms()
 change_room_status()
+```
 
 Responsibilities:
+
 * Room creation
 * Room updates
+* Room lookup
 * Room availability
-* Room status
+* Room status management
 * Room deactivation
-* Maintenance status
+* Maintenance management
 
+RoomService must enforce valid room state transitions.
 
-# Room Type Service
-File: app/services/room_type_service.py
-Class: RoomTypeService
+---
+
+# 19. Room Type Service
+
+File:
+
+```text
+app/services/room_type_service.py
+```
+
+Class:
+
+```text
+RoomTypeService
+```
 
 Functions:
+
+```text
 create_room_type()
 update_room_type()
 deactivate_room_type()
 get_room_type()
 get_all_room_types()
 update_price()
+```
 
-Room types may include:
-Single
-Double
-Deluxe
-Suite
+Responsibilities:
 
-# Check-in Service
-File: app/services/checkin_service.py
-Class: CheckInService
+* Room type creation
+* Room type updates
+* Room type deactivation
+* Room type lookup
+* Pricing management
+
+Only the Owner can perform management operations.
+
+---
+
+# 20. Check-in Service
+
+File:
+
+```text
+app/services/checkin_service.py
+```
+
+Class:
+
+```text
+CheckInService
+```
 
 Functions:
+
+```text
 check_in_customer()
 validate_room_for_checkin()
 create_customer_record()
 assign_room()
 generate_customer_credentials()
+```
 
 Responsibilities:
+
 * Validate customer details
-* Validate room availability
+* Validate selected room
+* Confirm room is `AVAILABLE`
 * Generate customer password
 * Generate key-card number
 * Create customer record
 * Assign room
 * Change room status to `OCCUPIED`
 
-# Check-out Service
-File: app/services/checkout_service.py
-Class: CheckoutService
+---
+
+# 21. Check-out Service
+
+File:
+
+```text
+app/services/checkout_service.py
+```
+
+Class:
+
+```text
+CheckoutService
+```
 
 Functions:
+
+```text
 checkout_customer()
 validate_active_stay()
 close_customer_record()
 release_room()
 mark_room_for_cleaning()
+```
 
 Responsibilities:
-* Validate active customer
-* Record checkout
+
+* Validate active customer stay
+* Record actual checkout
 * Close customer stay
+* Release room
 * Change room status to `CLEANING`
 
-# Cleaning Service
-File: app/services/cleaning_service.py
-Class:CleaningService
+---
+
+# 22. Cleaning Service
+
+File:
+
+```text
+app/services/cleaning_service.py
+```
+
+Class:
+
+```text
+CleaningService
+```
 
 Functions:
+
+```text
 get_cleaning_rooms()
 start_cleaning()
 mark_room_ready()
 get_cleaning_status()
+```
 
 Responsibilities:
 
 * Retrieve rooms requiring cleaning
-* Manage cleaning status
-* Mark rooms ready
+* Manage cleaning state
+* Start cleaning
+* Mark room as ready
 * Change `CLEANING` to `AVAILABLE`
 
-# Dashboard Service
-File: app/services/dashboard_service.py
-Class: DashboardService
+---
+
+# 23. Dashboard Service
+
+File:
+
+```text
+app/services/dashboard_service.py
+```
+
+Class:
+
+```text
+DashboardService
+```
 
 Functions:
+
+```text
 get_owner_dashboard()
 get_reception_dashboard()
 get_cleaner_dashboard()
+```
 
-# Dashboard Data
-## Owner
+The dashboard service calculates information from the runtime data store.
+
+---
+
+# 24. Dashboard Data
+
+## Owner Dashboard
+
+The Owner dashboard provides:
+
+```text
 Total Rooms
 Available Rooms
 Occupied Rooms
@@ -467,294 +895,489 @@ Cleaning Rooms
 Maintenance Rooms
 Room Types
 Current Occupants
+```
 
-## Reception
+---
+
+## Reception Dashboard
+
+The Reception dashboard provides:
+
+```text
 Available Rooms
 Occupied Rooms
 Room Types
 Room Prices
-Check-in
-Check-out
+Check-in Information
+Check-out Information
+```
 
-## Cleaner
+---
+
+## Cleaner Dashboard
+
+The Cleaner dashboard provides:
+
+```text
 Cleaning Rooms
 Room Number
 Room Type
 Cleaning Status
+```
 
-# Generators
-File: app/utils/generators.py
+---
 
-Functions:
-generate_four_digit_password()
-generate_key_card_number()
+# 25. Owner API Routes
 
-The four-digit password is generated during check-in.
-
-The key-card number must be unique for active assignments.
-
-
-# Validators
-File: app/utils/validators.py
-
-Functions:
-validate_customer_name()
-validate_phone()
-validate_room_number()
-validate_price()
-validate_room_type()
-validate_checkout_date()
-validate_room_status()
-
-All important validation must be performed on the backend.
-
-# Constants
-File: app/utils/constants.py
-Contains:
-OWNER
-RECEPTION
-CLEANER
-
-AVAILABLE
-OCCUPIED
-CLEANING
-MAINTENANCE
-
-All modules should use centralized constants instead of repeatedly defining status strings.
-
-# Owner Routes
 File:
+
+```text
 app/routes/owner_routes.py
+```
 
 Routes:
-/owner/dashboard
-/owner/rooms
-/owner/rooms/create
-/owner/rooms/update
-/owner/rooms/deactivate
-/owner/room-types
-/owner/room-types/create
-/owner/room-types/update
-/owner/occupants
 
-# Reception Routes
-File:app/routes/reception_routes.py
+```text
+GET  /owner/dashboard
+
+GET  /owner/rooms
+POST /owner/rooms/create
+PUT  /owner/rooms/update
+POST /owner/rooms/deactivate
+
+GET  /owner/room-types
+POST /owner/room-types/create
+PUT  /owner/room-types/update
+
+GET  /owner/occupants
+```
+
+Owner routes require:
+
+```text
+OWNER
+```
+
+runtime role verification.
+
+---
+
+# 26. Reception API Routes
+
+File:
+
+```text
+app/routes/reception_routes.py
+```
 
 Routes:
-/reception/dashboard
-/reception/rooms
-/reception/occupied
-/reception/checkin
-/reception/checkout
 
-# Cleaner Routes
-File: app/routes/cleaner_routes.py
+```text
+GET  /reception/dashboard
+GET  /reception/rooms
+GET  /reception/occupied
+
+POST /reception/checkin
+POST /reception/checkout
+```
+
+Reception routes require:
+
+```text
+RECEPTION
+```
+
+runtime role verification.
+
+---
+
+# 27. Cleaner API Routes
+
+File:
+
+```text
+app/routes/cleaner_routes.py
+```
 
 Routes:
-/cleaner/dashboard
-/cleaner/cleaning
-/cleaner/rooms/ready
 
-# Route-to-Service Linkage
-Owner Routes
-     ↓
-RoomService
-RoomTypeService
-DashboardService
+```text
+GET  /cleaner/dashboard
+GET  /cleaner/cleaning
+POST /cleaner/rooms/ready
+```
 
-Reception Routes
-     ↓
-CheckInService
-CheckoutService
-RoomService
-DashboardService
+Cleaner routes require:
 
-Cleaner Routes
-     ↓
-CleaningService
-DashboardService
+```text
+CLEANER
+```
 
-# Backend Request Flow
+runtime role verification.
+
+---
+
+# 28. Route-to-Service Mapping
+
+```text
+OWNER
+ │
+ ├── Owner Routes
+ │       │
+ │       ├── RoomService
+ │       ├── RoomTypeService
+ │       └── DashboardService
+ │
+RECEPTION
+ │
+ ├── Reception Routes
+ │       │
+ │       ├── CheckInService
+ │       ├── CheckoutService
+ │       ├── RoomService
+ │       └── DashboardService
+ │
+CLEANER
+ │
+ └── Cleaner Routes
+         │
+         ├── CleaningService
+         └── DashboardService
+```
+
+---
+
+# 29. Backend Request Flow
+
+Every protected request follows this general flow:
+
+```text
 HTTP Request
      ↓
-Authentication
-     ↓
-Authorization
+Runtime Role Verification
      ↓
 Route
      ↓
-Service
+Request Validation
      ↓
-Validation
+Service
      ↓
 Business Logic
      ↓
-Data Store
+Runtime Data Store
      ↓
-Response
+API Response
+```
 
-# Check-in Flow
-Reception
-    ↓
-Available Rooms
-    ↓
+Routes are responsible for request/response handling.
+
+Services are responsible for business decisions.
+
+The data store is responsible for runtime data management.
+
+---
+
+# 30. Check-in Workflow
+
+```text
+Reception API
+      ↓
 Customer Details
-    ↓
-Room Validation
-    ↓
-Generate Key Card
-    ↓
-Generate 4-Digit Password
-    ↓
-Create Customer
-    ↓
-Assign Room
-    ↓
-Room = OCCUPIED
-
-# Check-out Flow
-Reception
-    ↓
-Occupied Room
-    ↓
+      ↓
 Validate Customer
-    ↓
-Checkout
-    ↓
+      ↓
+Validate Room
+      ↓
+Check Room = AVAILABLE
+      ↓
+Generate Key Card
+      ↓
+Generate 4-Digit Password
+      ↓
+Create Customer Record
+      ↓
+Assign Room
+      ↓
+Room = OCCUPIED
+      ↓
+Return Check-in Response
+```
+
+A room that is:
+
+```text
+OCCUPIED
+CLEANING
+MAINTENANCE
+```
+
+cannot be assigned to a customer.
+
+---
+
+# 31. Check-out Workflow
+
+```text
+Reception API
+      ↓
+Select Active Customer
+      ↓
+Validate Active Stay
+      ↓
+Record Actual Checkout
+      ↓
 Close Customer Stay
-    ↓
+      ↓
+Release Room
+      ↓
 Room = CLEANING
+      ↓
+Return Checkout Response
+```
 
-# Cleaning Flow
-Checkout
-    ↓
+The room must not become `AVAILABLE` immediately after checkout.
+
+It must first go through cleaning.
+
+---
+
+# 32. Cleaning Workflow
+
+```text
+Customer Checkout
+       ↓
 Room = CLEANING
-    ↓
+       ↓
 Cleaner Dashboard
-    ↓
-Clean Room
-    ↓
-Mark Ready
-    ↓
+       ↓
+Cleaning Queue
+       ↓
+Start Cleaning
+       ↓
+Complete Cleaning
+       ↓
+Mark Room Ready
+       ↓
 Room = AVAILABLE
+```
 
+Only the Cleaner can complete the cleaning workflow.
 
-# Frontend
-Frontend uses only:
-HTML
-CSS
+---
 
-The frontend contains:
+# 33. Maintenance Workflow
 
-login.html
-owner/
-    dashboard.html
-    rooms.html
-    room_types.html
-reception/
-    dashboard.html
-    checkin.html
-    checkout.html
-cleaner/
-    dashboard.html
-    cleaning.html
+Maintenance is managed by the Owner.
 
-Frontend responsibilities:
-* Display information
-* Collect form data
-* Submit requests
-* Display responses
-* Provide navigation
+Normal flow:
 
-Business logic remains in Flask.
+```text
+AVAILABLE
+    ↓
+MAINTENANCE
+```
 
-# Application Startup
+After maintenance:
+
+```text
+MAINTENANCE
+    ↓
+AVAILABLE
+```
+
+A room cannot be moved into maintenance while it is occupied.
+
+A room under maintenance cannot be assigned during check-in.
+
+---
+
+# 34. API Response Principles
+
+The API should return JSON responses.
+
+Successful operations should provide:
+
+* Operation status
+* Relevant data
+* Appropriate HTTP status code
+
+Example:
+
+```json
+{
+    "success": true,
+    "message": "Room created successfully",
+    "data": {
+        "id": 101,
+        "room_number": "101",
+        "status": "AVAILABLE"
+    }
+}
+```
+
+Validation or authorization failures should return appropriate error responses.
+
+Example:
+
+```json
+{
+    "success": false,
+    "message": "Room is not available for check-in"
+}
+```
+
+---
+
+# 35. HTTP Status Codes
+
+The MVP should use standard HTTP status codes.
+
+| Status | Usage                                 |
+| ------ | ------------------------------------- |
+| 200    | Successful read/update operation      |
+| 201    | Successful creation                   |
+| 400    | Invalid request or validation failure |
+| 403    | Runtime role is not authorized        |
+| 404    | Requested resource does not exist     |
+| 409    | Business-state conflict               |
+| 500    | Unexpected server error               |
+
+---
+
+# 36. Application Startup
+
+`run.py` starts the Flask application.
+
+Startup sequence:
+
+```text
 run.py
    ↓
 Create Flask Application
    ↓
 Load Configuration
    ↓
-Initialize Data Store
+Initialize Runtime Data Store
    ↓
 Load Initial Data
    ↓
 Register Routes
    ↓
 Start Flask
+```
 
-# Main Dependency Structure
+---
 
-                    Flask Application
-                           │
-                           ▼
-                         Routes
-                           │
-                           ▼
-                        Services
-                           │
-                           ▼
-                       Data Store
-                           │
-                           ▼
-                         Models
+# 37. Application Dependency Structure
 
-Role-specific flow:
-OWNER
-  ↓
-Owner Routes
-  ↓
-Room / RoomType / Dashboard Services
+The complete dependency structure is:
 
+```text
+                  Flask Application
+                         │
+                         ▼
+                       Routes
+                         │
+                         ▼
+                      Services
+                         │
+                         ▼
+                  Runtime Data Store
+                         │
+                         ▼
+                Runtime Domain Classes
+```
 
-RECEPTION
-  ↓
-Reception Routes
-  ↓
-Check-in / Check-out / Room Services
- 
+The dependency direction must remain:
 
-CLEANER
-  ↓
-Cleaner Routes
-  ↓
-Cleaning Service
+```text
+Routes → Services → Data Store
+```
 
-# Development Order
+Services must not depend on routes.
+
+The data store must not depend on routes.
+
+Business logic must not be placed directly inside routes.
+
+---
+
+# 38. MVP Development Order
+
+Development should proceed in the following order:
+
+```text
 Project Setup
-    ↓
+      ↓
 Flask Configuration
-    ↓
+      ↓
 Constants
-    ↓
-Data Store
-    ↓
-Models
-    ↓
-Initial Data
-    ↓
-Authentication
-    ↓
-Authorization
-    ↓
+      ↓
+Runtime Data Store
+      ↓
+Hotel / Room Classes
+      ↓
+Initial Runtime Data
+      ↓
+Runtime Role Verification
+      ↓
 Room Management
-    ↓
+      ↓
 Room Types & Pricing
-    ↓
-Check-in
-    ↓
-Check-out
-    ↓
-Cleaning
-    ↓
+      ↓
+Customer Check-in
+      ↓
+Customer Check-out
+      ↓
+Cleaning Management
+      ↓
 Dashboards
-    ↓
+      ↓
 Validation
-    ↓
+      ↓
 Error Handling
-    ↓
-Testing
-    ↓
-Frontend Refinement
+```
 
+---
 
+# 39. MVP Scope
+
+The MVP includes:
+
+* Flask API
+* Runtime in-memory storage
+* Owner role
+* Reception role
+* Cleaner role
+* Runtime role verification
+* Room management
+* Room type management
+* Pricing
+* Room availability
+* Maintenance
+* Customer check-in
+* Customer check-out
+* Key-card generation
+* Four-digit customer password generation
+* Cleaning workflow
+* Role-specific dashboards
+* Backend validation
+* JSON API responses
+
+The MVP does not include:
+
+* Frontend
+* HTML
+* CSS
+* JavaScript frontend
+* Persistent database
+* ORM
+* JWT
+* Flask Session
+* Cookies
+* External authentication provider
+* External services
+* Persistent customer history
+* Production-grade authentication
+* Separate Data Model layer
+* Separate authentication service
